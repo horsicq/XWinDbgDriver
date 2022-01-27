@@ -1,4 +1,4 @@
-/* Copyright (c) 2021 hors<horsicq@gmail.com>
+/* Copyright (c) 2021-2022 hors<horsicq@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,7 @@ XWinDbgDriver::XWinDbgDriver(QObject *pParent) : QObject(pParent)
 
 }
 
-bool XWinDbgDriver::loadDriver(QString sFileName)
+bool XWinDbgDriver::loadDriver(QString sFileName, QString sServiceName)
 {
     bool bResult=false;
 
@@ -38,6 +38,9 @@ bool XWinDbgDriver::loadDriver(QString sFileName)
     // TODO errors
     if(hSCManager)
     {
+        // remove driver
+        // install driver
+        // start driver
         // TODO Create Service
     }
     else

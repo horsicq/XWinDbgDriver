@@ -1,4 +1,4 @@
-/* Copyright (c) 2021 hors<horsicq@gmail.com>
+/* Copyright (c) 2021-2022 hors<horsicq@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,7 @@ class XWinDbgDriver : public QObject
 public:
     explicit XWinDbgDriver(QObject *pParent=nullptr);
 
-    bool loadDriver(QString sFileName);
+    bool loadDriver(QString sFileName,QString sServiceName="X_KERNEL_DRIVER");
     qint32 readMemory();
 
 signals:
