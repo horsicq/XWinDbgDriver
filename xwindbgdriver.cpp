@@ -33,7 +33,7 @@ bool XWinDbgDriver::loadDriver(QString sFileName, QString sServiceName)
     SC_HANDLE hService=0;
     HANDLE hDevice=0;
 
-    hSCManager=OpenSCManagerW(0,0,SC_MANAGER_ALL_ACCESS);
+    hSCManager=OpenSCManagerW(NULL,NULL,SC_MANAGER_ALL_ACCESS);
 
     // TODO errors
     if(hSCManager)
@@ -42,14 +42,31 @@ bool XWinDbgDriver::loadDriver(QString sFileName, QString sServiceName)
         // install driver
         // start driver
         // TODO Create Service
+        CloseServiceHandle(hSCManager);
     }
     else
     {
+        // TODO Get last error
     #ifdef QT_DEBUG
         qDebug("Cannot open SCManager");
     #endif
     }
 
     return bResult;
+}
+
+bool XWinDbgDriver::installDriver(SC_HANDLE hSCManager, QString sServiceName, QString sFileName)
+{
+    return false;
+}
+
+bool XWinDbgDriver::removeDriver(SC_HANDLE hSCManager, QString sServiceName)
+{
+    return false;
+}
+
+bool XWinDbgDriver::startDriver(SC_HANDLE hSCManager, QString sServiceName)
+{
+    return false;
 }
 
