@@ -40,6 +40,7 @@ bool XWinDbgDriver::loadDriver(QString sFileName, QString sServiceName)
     {
         // remove driver
         // install driver
+        installDriver(hSCManager,sServiceName,sFileName);
         // start driver
         // TODO Create Service
         CloseServiceHandle(hSCManager);
@@ -57,7 +58,34 @@ bool XWinDbgDriver::loadDriver(QString sFileName, QString sServiceName)
 
 bool XWinDbgDriver::installDriver(SC_HANDLE hSCManager, QString sServiceName, QString sFileName)
 {
-    return false;
+    bool bResult=false;
+
+    SC_HANDLE schService=schService=CreateServiceW( hSCManager,                         // SCManager database
+                                                    (LPCWSTR)(sServiceName.utf16()),    // name of service
+                                                    (LPCWSTR)(sServiceName.utf16()),    // name to display
+                                                    SERVICE_ALL_ACCESS,                 // desired access
+                                                    SERVICE_KERNEL_DRIVER,              // service type
+                                                    SERVICE_DEMAND_START,               // start type
+                                                    SERVICE_ERROR_NORMAL,               // error control type
+                                                    (LPCWSTR)(sFileName.utf16()),       // service's binary
+                                                    NULL,                               // no load ordering group
+                                                    NULL,                               // no tag identifier
+                                                    NULL,                               // no dependencies
+                                                    NULL,                               // LocalSystem account
+                                                    NULL);                              // no password
+
+    if(schService)
+    {
+        bResult=true;
+
+        CloseServiceHandle(schService);
+    }
+    else
+    {
+        // TODO error signal
+    }
+
+    return bResult;
 }
 
 bool XWinDbgDriver::removeDriver(SC_HANDLE hSCManager, QString sServiceName)
