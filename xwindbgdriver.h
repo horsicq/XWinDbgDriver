@@ -34,6 +34,11 @@ public:
     bool loadDriver(QString sFileName,QString sServiceName="X_KERNEL_DRIVER");
     qint32 readMemory();
 
+private:
+    bool installDriver(SC_HANDLE hSCManager,QString sServiceName,QString sFileName);
+    bool removeDriver(SC_HANDLE hSCManager,QString sServiceName);
+    bool startDriver(SC_HANDLE hSCManager,QString sServiceName);
+
 signals:
     void infoMessage(QString sText);
     void errorMessage(QString sText);
