@@ -25,64 +25,64 @@ XWinDbgDriver::XWinDbgDriver(QObject *pParent) : QObject(pParent)
 
 }
 
-bool XWinDbgDriver::loadDriver(QString sFileName, QString sServiceName)
+HANDLE XWinDbgDriver::loadDriver(QString sFileName, QString sServiceName)
 {
-    bool bResult=false;
+    HANDLE nResult=0;
 
-    SC_HANDLE hSCManager=0;
-    SC_HANDLE hService=0;
-    HANDLE hDevice=0;
-
-    hSCManager=OpenSCManagerW(NULL,NULL,SC_MANAGER_ALL_ACCESS);
+    SC_HANDLE hSCManager=OpenSCManagerW(NULL,NULL,SC_MANAGER_ALL_ACCESS);
 
     // TODO errors
     if(hSCManager)
     {
-        // remove driver
-        // install driver
+        removeDriver(hSCManager,sServiceName);
         installDriver(hSCManager,sServiceName,sFileName);
-        // start driver
-        // TODO Create Service
+
+        if(startDriver(hSCManager,sServiceName))
+        {
+            nResult=openDevice(sServiceName);
+        }
+
         CloseServiceHandle(hSCManager);
     }
     else
     {
-        // TODO Get last error
     #ifdef QT_DEBUG
-        qDebug("Cannot open SCManager");
+        qDebug("%s",XProcess::getLastErrorAsString().toUtf8().data());
     #endif
     }
 
-    return bResult;
+    return nResult;
 }
 
 bool XWinDbgDriver::installDriver(SC_HANDLE hSCManager, QString sServiceName, QString sFileName)
 {
     bool bResult=false;
 
-    SC_HANDLE schService=schService=CreateServiceW( hSCManager,                         // SCManager database
-                                                    (LPCWSTR)(sServiceName.utf16()),    // name of service
-                                                    (LPCWSTR)(sServiceName.utf16()),    // name to display
-                                                    SERVICE_ALL_ACCESS,                 // desired access
-                                                    SERVICE_KERNEL_DRIVER,              // service type
-                                                    SERVICE_DEMAND_START,               // start type
-                                                    SERVICE_ERROR_NORMAL,               // error control type
-                                                    (LPCWSTR)(sFileName.utf16()),       // service's binary
-                                                    NULL,                               // no load ordering group
-                                                    NULL,                               // no tag identifier
-                                                    NULL,                               // no dependencies
-                                                    NULL,                               // LocalSystem account
-                                                    NULL);                              // no password
+    SC_HANDLE hSCService=CreateServiceW(hSCManager,                         // SCManager database
+                                        (LPCWSTR)(sServiceName.utf16()),    // name of service
+                                        (LPCWSTR)(sServiceName.utf16()),    // name to display
+                                        SERVICE_ALL_ACCESS,                 // desired access
+                                        SERVICE_KERNEL_DRIVER,              // service type
+                                        SERVICE_DEMAND_START,               // start type
+                                        SERVICE_ERROR_NORMAL,               // error control type
+                                        (LPCWSTR)(sFileName.utf16()),       // service's binary
+                                        NULL,                               // no load ordering group
+                                        NULL,                               // no tag identifier
+                                        NULL,                               // no dependencies
+                                        NULL,                               // LocalSystem account
+                                        NULL);                              // no password
 
-    if(schService)
+    if(hSCService)
     {
         bResult=true;
 
-        CloseServiceHandle(schService);
+        CloseServiceHandle(hSCService);
     }
     else
     {
-        // TODO error signal
+    #ifdef QT_DEBUG
+        qDebug("%s",XProcess::getLastErrorAsString().toUtf8().data());
+    #endif
     }
 
     return bResult;
@@ -90,11 +90,83 @@ bool XWinDbgDriver::installDriver(SC_HANDLE hSCManager, QString sServiceName, QS
 
 bool XWinDbgDriver::removeDriver(SC_HANDLE hSCManager, QString sServiceName)
 {
-    return false;
+    bool bResult=false;
+
+    SC_HANDLE hSCService=OpenServiceW(hSCManager,(LPCWSTR)(sServiceName.utf16()),SERVICE_ALL_ACCESS);
+
+    if(hSCService)
+    {
+        bResult=DeleteService(hSCService);
+
+        CloseServiceHandle(hSCService);
+    }
+    else
+    {
+    #ifdef QT_DEBUG
+        qDebug("%s",XProcess::getLastErrorAsString().toUtf8().data());
+    #endif
+    }
+
+    return bResult;
 }
 
 bool XWinDbgDriver::startDriver(SC_HANDLE hSCManager, QString sServiceName)
 {
-    return false;
+    bool bResult=false;
+
+    SC_HANDLE hSCService=OpenService(hSCManager,(LPCWSTR)(sServiceName.utf16()),SERVICE_ALL_ACCESS);
+
+    if(hSCService)
+    {
+        BOOL _bResult=StartServiceW(hSCService,0,NULL);
+
+        bResult=(_bResult==TRUE);
+
+        CloseServiceHandle(hSCService);
+    }
+    else
+    {
+    #ifdef QT_DEBUG
+        qDebug("%s",XProcess::getLastErrorAsString().toUtf8().data());
+    #endif
+    }
+
+    return bResult;
+}
+
+bool XWinDbgDriver::stopDriver(QString sServiceName)
+{
+    bool bResult=false;
+
+
+    return bResult;
+}
+
+HANDLE XWinDbgDriver::openDevice(QString sServiceName)
+{
+    HANDLE hResult=0;
+
+    QString sCompleteDeviceName=QString("\\\\.\\%1").arg(sServiceName);
+
+    HANDLE hDevice=CreateFileW((LPCWSTR)(sCompleteDeviceName.utf16()),
+                GENERIC_READ|GENERIC_WRITE,
+                0,
+                NULL,
+                OPEN_EXISTING,
+                FILE_ATTRIBUTE_NORMAL,
+                NULL);
+
+    if(hDevice!=INVALID_HANDLE_VALUE)
+    {
+        hResult=hDevice;
+    }
+    else
+    {
+    #ifdef QT_DEBUG
+        qDebug("%s",XProcess::getLastErrorAsString().toUtf8().data());
+    #endif
+    }
+
+    return hResult;
 }
 
