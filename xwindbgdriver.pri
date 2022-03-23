@@ -7,6 +7,11 @@ HEADERS += \
 SOURCES += \
     $$PWD/xwindbgdriver.cpp
 
-win32 {
-    LIBS += Advapi32.lib
+!contains(XCONFIG, xprocess) {
+    XCONFIG += xprocess
+    include(../XProcess/xprocess.pri)
+}
+
+win32-msvc* {
+    LIBS += ntdll.lib
 }
