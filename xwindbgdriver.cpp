@@ -50,8 +50,8 @@ bool XWinDbgDriver::load(QString sDriverFolder)
 
         if(XBinary::isFileExists(sDriverFileName))
         {
-//            g_sServiceName=QString("X_KERNEL_DRIVER_%1").arg(XBinary::random32());
-            g_sServiceName="X_KERNEL_DRIVER_A";
+            g_sServiceName=QString("XKD_%1").arg(XBinary::random32());
+//            g_sServiceName="X_KERNEL_DRIVER_A";
 
             g_hDriver=loadDriver(sDriverFileName,g_sServiceName);
 
@@ -144,7 +144,7 @@ HANDLE XWinDbgDriver::loadDriver(QString sFileName, QString sServiceName)
 
     if(hSCManager)
     {
-        removeDriver(hSCManager,sServiceName);
+//        removeDriver(hSCManager,sServiceName);
         installDriver(hSCManager,sServiceName,sFileName);
 
         if(startDriver(hSCManager,sServiceName))
@@ -232,6 +232,14 @@ bool XWinDbgDriver::removeDriver(SC_HANDLE hSCManager, QString sServiceName)
     if(hSCService)
     {
         bResult=(DeleteService(hSCService)==TRUE);
+
+        if(!bResult)
+        {
+        #ifdef QT_DEBUG
+            qDebug("%s",XProcess::getLastErrorAsString().toUtf8().data());
+        #endif
+            emit errorMessage(QString("XWinDbgDriver::removeDriver: %1").arg(XProcess::getLastErrorAsString()));
+        }
 
         CloseServiceHandle(hSCService);
     }
