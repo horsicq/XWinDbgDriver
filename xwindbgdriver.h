@@ -90,19 +90,11 @@ public:
     explicit XWinDbgDriver(QObject *pParent=nullptr);
     ~XWinDbgDriver();
 
-    bool load(QString sDriverFolder);
-    void unload();
+    bool load();
 
     quint64 readMemory(quint64 nAddress, char *pData, quint64 nDataSize);
 
-    HANDLE loadDriver(QString sFileName,QString sServiceName="X_KERNEL_DRIVER");
-    bool unloadDriver(QString sServiceName="X_KERNEL_DRIVER");
-
 private:
-    bool installDriver(SC_HANDLE hSCManager,QString sServiceName,QString sFileName);
-    bool removeDriver(SC_HANDLE hSCManager,QString sServiceName);
-    bool startDriver(SC_HANDLE hSCManager,QString sServiceName);
-    bool stopDriver(SC_HANDLE hSCManager,QString sServiceName);
     HANDLE openDevice(QString sServiceName);
 
 signals:
