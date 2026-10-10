@@ -25,12 +25,10 @@
 #include "xprocess.h"
 #include <Windows.h>
 
-class XWinDbgDriver : public QObject
-{
+class XWinDbgDriver : public QObject {
     Q_OBJECT
 
-    enum S_SYSDBG_COMMAND
-    {
+    enum S_SYSDBG_COMMAND {
         SysDbgQueryModuleInformation,
         SysDbgQueryTraceInformation,
         SysDbgSetTracepoint,
@@ -72,22 +70,20 @@ class XWinDbgDriver : public QObject
         SysDbgKdPullRemoteFile
     };
 
-    struct S_KLDBG
-    {
+    struct S_KLDBG {
         S_SYSDBG_COMMAND SysDbgRequest;
         PVOID Buffer;
         DWORD BufferSize;
     };
 
-    struct S_SYSDBG_VIRTUAL
-    {
+    struct S_SYSDBG_VIRTUAL {
         PVOID Address;
         PVOID Buffer;
         ULONG Request;
     };
 
 public:
-    explicit XWinDbgDriver(QObject *pParent=nullptr);
+    explicit XWinDbgDriver(QObject *pParent = nullptr);
     ~XWinDbgDriver();
 
     bool load();
@@ -106,4 +102,4 @@ private:
     QString g_sServiceName;
 };
 
-#endif // XWINDBGDRIVER_H
+#endif  // XWINDBGDRIVER_H

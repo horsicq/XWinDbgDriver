@@ -22,67 +22,54 @@
 
 XWinDbgDriver::XWinDbgDriver(QObject *pParent) : QObject(pParent)
 {
-    g_hDriver=0;
+    g_hDriver = 0;
 }
 
 XWinDbgDriver::~XWinDbgDriver()
 {
-    if(g_hDriver)
-    {
-       CloseHandle(g_hDriver);
+    if (g_hDriver) {
+        CloseHandle(g_hDriver);
     }
 }
 
 bool XWinDbgDriver::load()
 {
-    g_hDriver=openDevice("kldbgdrv");
+    g_hDriver = openDevice("kldbgdrv");
 
-    return (g_hDriver!=0);
+    return (g_hDriver != 0);
 }
 
 quint64 XWinDbgDriver::readMemory(quint64 nAddress, char *pData, quint64 nDataSize)
 {
-    quint64 nResult=0;
+    quint64 nResult = 0;
 
-    if(g_hDriver)
-    {
-        S_KLDBG kldbg={};
-        IO_STATUS_BLOCK iost={};
-        S_SYSDBG_VIRTUAL dbgRequest={};
+    if (g_hDriver) {
+        S_KLDBG kldbg = {};
+        IO_STATUS_BLOCK iost = {};
+        S_SYSDBG_VIRTUAL dbgRequest = {};
 
-        dbgRequest.Address=(PVOID)nAddress;
-        dbgRequest.Buffer=pData;
-        dbgRequest.Request=nDataSize;
+        dbgRequest.Address = (PVOID)nAddress;
+        dbgRequest.Buffer = pData;
+        dbgRequest.Request = nDataSize;
 
-        kldbg.SysDbgRequest=SysDbgReadVirtual;
-        kldbg.Buffer=&dbgRequest;
-        kldbg.BufferSize=sizeof(S_SYSDBG_VIRTUAL);
+        kldbg.SysDbgRequest = SysDbgReadVirtual;
+        kldbg.Buffer = &dbgRequest;
+        kldbg.BufferSize = sizeof(S_SYSDBG_VIRTUAL);
 
-        iost.Information=0;
-        iost.Status=0;
+        iost.Information = 0;
+        iost.Status = 0;
 
-        NTSTATUS ntStatus=NtDeviceIoControlFile(g_hDriver,
-                                                NULL,
-                                                NULL,
-                                                NULL,
-                                                &iost,
-                                                CTL_CODE(FILE_DEVICE_UNKNOWN,0x1,METHOD_NEITHER,FILE_READ_ACCESS|FILE_WRITE_ACCESS),
-                                                &kldbg,
-                                                sizeof(kldbg),
-                                                &dbgRequest,
-                                                sizeof(dbgRequest));
+        NTSTATUS ntStatus =
+            NtDeviceIoControlFile(g_hDriver, NULL, NULL, NULL, &iost, CTL_CODE(FILE_DEVICE_UNKNOWN, 0x1, METHOD_NEITHER, FILE_READ_ACCESS | FILE_WRITE_ACCESS), &kldbg,
+                                  sizeof(kldbg), &dbgRequest, sizeof(dbgRequest));
 
-        if(ntStatus==STATUS_PENDING)
-        {
-            ntStatus=NtWaitForSingleObject(g_hDriver,FALSE,NULL);
+        if (ntStatus == STATUS_PENDING) {
+            ntStatus = NtWaitForSingleObject(g_hDriver, FALSE, NULL);
         }
 
-        if(NT_SUCCESS(ntStatus))
-        {
-            nResult=iost.Information;
-        }
-        else
-        {
+        if (NT_SUCCESS(ntStatus)) {
+            nResult = iost.Information;
+        } else {
             // TODO error
         }
     }
@@ -92,30 +79,20 @@ quint64 XWinDbgDriver::readMemory(quint64 nAddress, char *pData, quint64 nDataSi
 
 HANDLE XWinDbgDriver::openDevice(QString sServiceName)
 {
-    HANDLE hResult=0;
+    HANDLE hResult = 0;
 
-    QString sCompleteDeviceName=QString("\\\\.\\%1").arg(sServiceName);
+    QString sCompleteDeviceName = QString("\\\\.\\%1").arg(sServiceName);
 
-    HANDLE hDevice=CreateFileW((LPCWSTR)(sCompleteDeviceName.utf16()),
-                GENERIC_READ|GENERIC_WRITE,
-                0,
-                NULL,
-                OPEN_EXISTING,
-                FILE_ATTRIBUTE_NORMAL,
-                NULL);
+    HANDLE hDevice = CreateFileW((LPCWSTR)(sCompleteDeviceName.utf16()), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
-    if(hDevice!=INVALID_HANDLE_VALUE)
-    {
-        hResult=hDevice;
-    }
-    else
-    {
-    #ifdef QT_DEBUG
-        qDebug("%s",XProcess::getLastErrorAsString().toUtf8().data());
-    #endif
+    if (hDevice != INVALID_HANDLE_VALUE) {
+        hResult = hDevice;
+    } else {
+#ifdef QT_DEBUG
+        qDebug("%s", XProcess::getLastErrorAsString().toUtf8().data());
+#endif
         emit errorMessage(QString("XWinDbgDriver::stopDriver: %1").arg(XProcess::getLastErrorAsString()));
     }
 
     return hResult;
 }
-
